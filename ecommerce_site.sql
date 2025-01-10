@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : localhost:8889
--- Généré le : mar. 17 déc. 2024 à 09:32
+-- Généré le : ven. 10 jan. 2025 à 14:50
 -- Version du serveur : 5.7.39
 -- Version de PHP : 8.2.0
 
@@ -34,8 +34,19 @@ CREATE TABLE `Articles` (
   `price` decimal(10,2) NOT NULL,
   `publication_date` datetime DEFAULT CURRENT_TIMESTAMP,
   `author_id` int(11) NOT NULL,
-  `image_url` varchar(255) DEFAULT NULL
+  `image_url` varchar(255) DEFAULT NULL,
+  `is_sold` tinyint(1) DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Déchargement des données de la table `Articles`
+--
+
+INSERT INTO `Articles` (`id`, `name`, `description`, `price`, `publication_date`, `author_id`, `image_url`, `is_sold`) VALUES
+(1, 'feu', 'fiefs', '111.00', '2025-01-10 13:10:12', 1, 'zefzfzf', 1),
+(2, 'feu', 'fiefs', '111.00', '2025-01-10 13:10:19', 1, 'zefzfzf', 0),
+(3, 'Laurene ', 'est souvent chaude ', '1000.00', '2025-01-10 13:12:11', 1, 'scqsc', 1),
+(4, 'car', 'sqscqscqsc', '12.00', '2025-01-10 13:36:56', 1, 'spa', 0);
 
 -- --------------------------------------------------------
 
@@ -65,6 +76,16 @@ CREATE TABLE `Invoices` (
   `billing_zip` varchar(20) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+--
+-- Déchargement des données de la table `Invoices`
+--
+
+INSERT INTO `Invoices` (`id`, `user_id`, `transaction_date`, `amount`, `billing_address`, `billing_city`, `billing_zip`) VALUES
+(1, 1, '2025-01-10 14:31:23', '1111.00', '3030 Chemin du boulot ', 'antibes', '09277'),
+(2, 1, '2025-01-10 14:33:25', '111.00', '3030 chemin du gcfgd', 'zeidu', 'zefbhu'),
+(3, 1, '2025-01-10 14:41:01', '1000.00', 'drttdf', 'guugy', 'fgcyfg'),
+(4, 2, '2025-01-10 15:44:03', '111.00', 'gr', 'gr', 'gre');
+
 -- --------------------------------------------------------
 
 --
@@ -93,6 +114,14 @@ CREATE TABLE `Users` (
   `role` enum('user','admin') DEFAULT 'user',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Déchargement des données de la table `Users`
+--
+
+INSERT INTO `Users` (`id`, `username`, `email`, `password`, `balance`, `profile_picture`, `role`, `created_at`) VALUES
+(1, 'toto', 'toto@gmail.com', '$2y$10$L61F45y8R1..bYobb.0iSup2S2r.TzOlQHiDKgjx168VLLUlF4PHi', '997778.00', NULL, 'user', '2025-01-04 17:51:54'),
+(2, 'patr', 'pat@gmail.com', '$2y$10$AB4gh4HCy2CAWb0Zpyu6sOy7GWs.T04LhXZDhBQf9kNtZ50hQiDAm', '999889.00', NULL, 'user', '2025-01-10 11:40:34');
 
 --
 -- Index pour les tables déchargées
@@ -143,19 +172,19 @@ ALTER TABLE `Users`
 -- AUTO_INCREMENT pour la table `Articles`
 --
 ALTER TABLE `Articles`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT pour la table `Cart`
 --
 ALTER TABLE `Cart`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT pour la table `Invoices`
 --
 ALTER TABLE `Invoices`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT pour la table `Stock`
@@ -167,7 +196,7 @@ ALTER TABLE `Stock`
 -- AUTO_INCREMENT pour la table `Users`
 --
 ALTER TABLE `Users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- Contraintes pour les tables déchargées
