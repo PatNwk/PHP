@@ -4,8 +4,9 @@ session_start(); // Démarrer la session
 require 'db_connection.php'; // Inclure le fichier de connexion à la base de données
 
 // Récupérer les articles disponibles (exclut les articles vendus)
-$sql = "SELECT * FROM Articles WHERE is_sold = 0"; // Exclure les articles avec is_sold = 1
-$stmt = $pdo->query($sql); // Utilisation de $pdo à la place de $conn
+$sql = "SELECT * FROM Articles WHERE is_sold = 0";
+$stmt = $pdo->query($sql);
+
 
 
 // Vérifier si l'utilisateur est connecté

@@ -17,7 +17,7 @@ $stmt_user->execute([$user_id]);
 $user = $stmt_user->fetch(PDO::FETCH_ASSOC);
 
 // Récupérer les articles postés par l'utilisateur
-$stmt_articles = $pdo->prepare("SELECT * FROM Articles WHERE author_id = ?");
+$stmt_articles = $pdo->prepare("SELECT * FROM Articles WHERE author_id = ? AND is_sold = 0 ");
 $stmt_articles->execute([$user_id]);
 $articles_posted = $stmt_articles->fetchAll(PDO::FETCH_ASSOC);
 

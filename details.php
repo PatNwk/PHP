@@ -2,7 +2,7 @@
 
 $host = "localhost";
 $dbname = "ecommerce_site";
-$username = "root1";
+$username = "root";
 $password = "root";
 
 try {

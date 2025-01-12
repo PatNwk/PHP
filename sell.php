@@ -2,7 +2,7 @@
 
 $host = "localhost";
 $dbname = "ecommerce_site";
-$username = "root1";
+$username = "root";
 $password = "root";
 
 try {
@@ -24,15 +24,21 @@ if (!isset($_SESSION['user_id'])) {
 if (isset($_POST['add_to_cart'])) {
     $article_id = $_POST['article_id'];
     $user_id = $_SESSION['user_id'];
-    
+
     try {
         // Ajouter l'article au panier
         $sql = "INSERT INTO Cart (user_id, article_id) VALUES (:user_id, :article_id)";
         $stmt = $pdo->prepare($sql);
         $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
         $stmt->bindParam(':article_id', $article_id, PDO::PARAM_INT);
-        
+
         if ($stmt->execute()) {
+            // Marquer l'article comme vendu
+            $update_sql = "UPDATE Articles SET is_sold = 1 WHERE id = :article_id";
+            $update_stmt = $pdo->prepare($update_sql);
+            $update_stmt->bindParam(':article_id', $article_id, PDO::PARAM_INT);
+            $update_stmt->execute();
+
             echo "Article ajouté au panier.";
         } else {
             echo "Erreur lors de l'ajout au panier.";
@@ -41,6 +47,7 @@ if (isset($_POST['add_to_cart'])) {
         echo "Erreur: " . $e->getMessage();
     }
 }
+
 
 // Ajouter un nouvel article en vente
 if (isset($_POST['submit_article'])) {
