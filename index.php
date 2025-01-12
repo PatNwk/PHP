@@ -25,7 +25,7 @@ $is_logged_in = isset($_SESSION['user_id']);
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
     <div class="container">
-        <a class="navbar-brand" href="index.php">Mon Site</a>
+        <a class="navbar-brand" href="index.php">Lemauvaiscoin</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -46,8 +46,8 @@ $is_logged_in = isset($_SESSION['user_id']);
 </nav>
 
     <div class="container text-center mt-5">
-        <h1 class="mb-3">Bienvenue sur notre site</h1>
-        <p class="lead">Découvrez nos articles et connectez-vous pour en profiter pleinement !</p>
+        <h1 class="mb-3">Bienvenue sur Lemauvaiscoin</h1>
+        <p class="lead">Achete</p>
 
         <!-- Afficher les articles -->
         <div class="row mt-5">
