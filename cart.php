@@ -60,7 +60,7 @@ if (isset($_POST['remove_from_cart'])) {
 
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
-            <a class="navbar-brand" href="index.php">Mon Site</a>
+            <a class="navbar-brand" href="index.php">lamauvaiscoin</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
