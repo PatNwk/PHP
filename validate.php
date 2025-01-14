@@ -129,28 +129,63 @@ function generateInvoicePDF($invoice_id) {
     // Création du PDF
     $pdf = new FPDF();
     $pdf->AddPage();
-    $pdf->SetFont('Arial', 'B', 16);
+    $pdf->SetFont('Arial', '', 12);
 
     // Titre de la facture
+    $pdf->SetFont('Arial', 'B', 16);
     $pdf->Cell(0, 10, 'Facture - Commande #' . $invoice['id'], 0, 1, 'C');
+    $pdf->Ln(10);
 
-    // Détails de la facture
+    // Détails de la facture avec bordures
     $pdf->SetFont('Arial', '', 12);
-    $pdf->Cell(0, 10, 'Date: ' . $invoice['transaction_date'], 0, 1, 'L');
-    $pdf->Cell(0, 10, 'Adresse de facturation: ' . $invoice['billing_address'], 0, 1, 'L');
-    $pdf->Cell(0, 10, 'Ville: ' . $invoice['billing_city'], 0, 1, 'L');
-    $pdf->Cell(0, 10, 'Code postal: ' . $invoice['billing_zip'], 0, 1, 'L');
-    $pdf->Cell(0, 10, 'Total: ' . number_format($invoice['amount'], 2, '.', '') . ' €', 0, 1, 'L');
+    $pdf->Cell(40, 10, 'Date: ', 0, 0, 'L');
+    $pdf->Cell(0, 10, $invoice['transaction_date'], 0, 1, 'L');
+    
+    $pdf->Cell(40, 10, 'Adresse de facturation: ', 0, 0, 'L');
+    $pdf->MultiCell(0, 10, $invoice['billing_address'], 0, 'L');
+    
+    $pdf->Cell(40, 10, 'Ville: ', 0, 0, 'L');
+    $pdf->Cell(0, 10, $invoice['billing_city'], 0, 1, 'L');
+    
+    $pdf->Cell(40, 10, 'Code postal: ', 0, 0, 'L');
+    $pdf->Cell(0, 10, $invoice['billing_zip'], 0, 1, 'L');
+    
+    $pdf->Cell(40, 10, 'Total: ', 0, 0, 'L');
+    $pdf->Cell(0, 10, number_format($invoice['amount'], 2, '.', '') . ' €', 0, 1, 'L');
+    $pdf->Ln(10);
 
-    // Liste des articles
-    $pdf->Cell(0, 10, 'Articles:', 0, 1, 'L');
+    // Liste des articles avec tableau
+    $pdf->SetFont('Arial', 'B', 12);
+    $pdf->Cell(90, 10, 'Article', 1, 0, 'C');
+    $pdf->Cell(40, 10, 'Prix unitaire', 1, 0, 'C');
+    $pdf->Cell(30, 10, 'Quantité', 1, 0, 'C');
+    $pdf->Cell(30, 10, 'Total', 1, 1, 'C');
+    
+    $pdf->SetFont('Arial', '', 12);
+
+    $total_amount = 0;
+
     foreach ($cart_items as $item) {
-        $pdf->Cell(0, 10, $item['name'] . ' - ' . number_format($item['price'], 2, '.', '') . ' €', 0, 1, 'L');
+        // Affichage de chaque article dans le tableau
+        $pdf->Cell(90, 10, $item['name'], 1, 0, 'L');
+        $pdf->Cell(40, 10, number_format($item['price'], 2, '.', '') . ' €', 1, 0, 'C');
+        $pdf->Cell(30, 10, '1', 1, 0, 'C');  // Quantité fixe ici (vous pouvez ajuster selon votre logique)
+        $pdf->Cell(30, 10, number_format($item['price'], 2, '.', '') . ' €', 1, 1, 'C');
+        
+        // Additionner le montant total
+        $total_amount += $item['price'];
     }
+
+    // Afficher le total général avec un fond pour faire ressortir le montant
+    $pdf->SetFont('Arial', 'B', 12);
+    $pdf->Cell(160, 10, 'Total de la commande:', 1, 0, 'R');
+    $pdf->Cell(30, 10, number_format($total_amount, 2, '.', '') . ' €', 1, 1, 'C');
+    $pdf->Ln(10);
 
     // Sortie du PDF
     $pdf->Output('F', 'invoices/invoice_' . $invoice_id . '.pdf');
 }
+
 ?>
 
 <!DOCTYPE html>

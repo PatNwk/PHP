@@ -48,7 +48,6 @@ if (isset($_POST['add_to_cart'])) {
     }
 }
 
-
 // Ajouter un nouvel article en vente
 if (isset($_POST['submit_article'])) {
     $name = $_POST['name'];
@@ -69,7 +68,9 @@ if (isset($_POST['submit_article'])) {
         $stmt->bindParam(':author_id', $author_id, PDO::PARAM_INT);
 
         if ($stmt->execute()) {
-            echo "Article mis en vente avec succès.";
+            // Redirection vers la page index.php
+            header("Location: index.php");
+            exit;
         } else {
             echo "Erreur lors de la mise en vente de l'article.";
         }
@@ -92,7 +93,8 @@ try {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="sell.css">
     <title>Vendre des Articles</title>
 </head>
 
@@ -112,54 +114,43 @@ try {
             </div>
         </div>
     </nav>
-<body>
-    <h1>Vendre des Articles</h1>
 
-    <!-- Bouton pour revenir à l'index -->
-    <a href="index.php">
-        <button type="button">Retour à l'Index</button>
-    </a>
-    
-    <!-- Formulaire pour mettre un article en vente -->
-    <h2>Ajouter un nouvel article en vente</h2>
-    <form method="POST" action="sell.php">
-        <label for="name">Nom de l'article :</label><br>
-        <input type="text" id="name" name="name" required><br>
+    <div class="container">
+        <h1>Vendre des Articles</h1>
 
-        <label for="description">Description :</label><br>
-        <textarea id="description" name="description" required></textarea><br>
+        <!-- Bouton pour revenir à l'index -->
+        <a href="index.php">
+            <button type="button" class="btn btn-secondary mb-3">Retour à l'Index</button>
+        </a>
+        
+        <!-- Formulaire pour mettre un article en vente -->
+        <h2>Ajouter un nouvel article en vente</h2>
+        <form method="POST" action="sell.php">
+            <div class="mb-3">
+            <label for="description" class="form-label">Titre</label>
+                <input type="text" id="name" name="name" class="form-control" required>
+            </div>
 
-        <label for="price">Prix (€) :</label><br>
-        <input type="number" id="price" name="price" step="0.01" required><br>
+            <div class="mb-3">
+                <label for="description" class="form-label">Description</label>
+                <textarea id="description" name="description" class="form-control" rows="4" required></textarea>
+            </div>
 
-        <label for="image_url">URL de l'image :</label><br>
-        <input type="text" id="image_url" name="image_url" required><br>
+            <div class="mb-3">
+                <label for="price" class="form-label">Prix (€)</label>
+                <input type="number" id="price" name="price" class="form-control" step="0.01" required>
+            </div>
 
-        <button type="submit" name="submit_article">Mettre l'article en vente</button>
-    </form>
-    
-    <h2>Articles Disponibles à l'achat</h2>
-    <div class="articles">
-        <?php
-        if ($stmt->rowCount() > 0) {
-            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                // Afficher chaque article
-                echo "<div class='article'>";
-                echo "<h3>" . htmlspecialchars($row['name']) . "</h3>";
-                echo "<p>" . htmlspecialchars($row['description']) . "</p>";
-                echo "<p>Prix: " . htmlspecialchars($row['price']) . " €</p>";
-                echo "<img src='" . htmlspecialchars($row['image_url']) . "' alt='" . htmlspecialchars($row['name']) . "'>";
-                echo "<form method='POST' action='sell.php'>";
-                echo "<input type='hidden' name='article_id' value='" . htmlspecialchars($row['id']) . "'>";
-                echo "<button type='submit' name='add_to_cart'>Ajouter au Panier</button>";
-                echo "</form>";
-                echo "</div>";
-            }
-        } else {
-            echo "Aucun article disponible à la vente.";
-        }
-        ?>
+            <div class="mb-3">
+                <label for="image_url" class="form-label">URL de l'image</label>
+                <input type="text" id="image_url" name="image_url" class="form-control" required>
+            </div>
+
+            <button type="submit" name="submit_article" class="btn btn-primary">Mettre l'article en vente</button>
+        </form>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
 
