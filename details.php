@@ -6,19 +6,16 @@ $username = "root";
 $password = "root";
 
 try {
-    // Connexion à la base de données avec PDO
     $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $username, $password);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch (PDOException $e) {
     die("Erreur de connexion : " . $e->getMessage());
 }
 
-// Vérifier si un ID d'article a été passé en paramètre dans l'URL
 if (isset($_GET['article_id'])) {
     $article_id = $_GET['article_id'];
 
     try {
-        // Récupérer les informations détaillées de l'article
         $sql = "SELECT * FROM Articles WHERE id = :article_id";
         $stmt = $pdo->prepare($sql);
         $stmt->bindParam(':article_id', $article_id, PDO::PARAM_INT);
@@ -44,12 +41,13 @@ if (isset($_GET['article_id'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <title>Détails de l'Article</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 </head>
 
 <body class="bg-light">
 
+    <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
             <a class="navbar-brand" href="index.php">Lemauvaiscoin</a>
@@ -65,31 +63,37 @@ if (isset($_GET['article_id'])) {
         </div>
     </nav>
 
-<body>
-    <h1>Détails de l'Article</h1>
+    <!-- Contenu principal -->
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card shadow-lg">
+                    <div class="card-body text-center">
+                        <h1 class="card-title"><?php echo htmlspecialchars($article['name']); ?></h1>
+                        <img src="<?php echo htmlspecialchars($article['image_url']); ?>" alt="<?php echo htmlspecialchars($article['name']); ?>" class="img-fluid rounded mt-3" style="max-width: 100%; height: auto; max-height: 400px;">
+                        <p class="mt-3"><strong>Description :</strong> <?php echo nl2br(htmlspecialchars($article['description'])); ?></p>
+                        <h3 class="text-danger"><?php echo htmlspecialchars($article['price']); ?> €</h3>
 
-    <!-- Afficher les détails de l'article -->
-    <div class="article-details">
-        <h2><?php echo htmlspecialchars($article['name']); ?></h2>
-        <p><strong>Description :</strong> <?php echo htmlspecialchars($article['description']); ?></p>
-        <p><strong>Prix :</strong> <?php echo htmlspecialchars($article['price']); ?> €</p>
-        <img src="<?php echo htmlspecialchars($article['image_url']); ?>" alt="<?php echo htmlspecialchars($article['name']); ?>" style="max-width: 300px;">
-        <!-- Formulaire pour ajouter l'article au panier -->
-        <form method="POST" action="sell.php">
-            <input type="hidden" name="article_id" value="<?php echo htmlspecialchars($article['id']); ?>">
-            <button type="submit" name="add_to_cart">Ajouter au Panier</button>
-        </form>
+                        <!-- Formulaire pour ajouter au panier -->
+                        <form method="POST" action="sell.php">
+                            <input type="hidden" name="article_id" value="<?php echo htmlspecialchars($article['id']); ?>">
+                            <button type="submit" name="add_to_cart" class="btn btn-success btn-lg mt-3">🛒 Ajouter au Panier</button>
+                        </form>
+
+                        <!-- Bouton retour -->
+                        <a href="index.php" class="btn btn-outline-primary mt-3">⬅ Retour à l'Index</a>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- Lien pour revenir à la page d'index -->
-    <a href="index.php">
-        <button type="button">Retour à l'Index</button>
-    </a>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
 </html>
 
 <?php
-// Fermer la connexion PDO (optionnel, mais une bonne pratique)
 $pdo = null;
 ?>

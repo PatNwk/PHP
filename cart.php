@@ -12,7 +12,7 @@ $user_id = $_SESSION['user_id'];
 
 // Récupérer les articles du panier
 try {
-    $sql = "SELECT Cart.id, Articles.name, Articles.price, Articles.image_url 
+    $sql = "SELECT Cart.id, Articles.name, Articles.price, Articles.image_url, Articles.id AS article_id
             FROM Cart 
             JOIN Articles ON Cart.article_id = Articles.id 
             WHERE Cart.user_id = :user_id";
@@ -33,12 +33,23 @@ foreach ($cart_items as $item) {
 // Suppression d'un article du panier
 if (isset($_POST['remove_from_cart'])) {
     $cart_item_id = $_POST['cart_item_id'];
+    $article_id = $_POST['article_id']; // Récupérer l'ID de l'article
+
     try {
+        // Supprimer du panier
         $sql = "DELETE FROM Cart WHERE id = :cart_item_id";
         $stmt = $pdo->prepare($sql);
         $stmt->bindParam(':cart_item_id', $cart_item_id, PDO::PARAM_INT);
         $stmt->execute();
-        header("Location: cart.php");  // Rediriger après la suppression
+
+        // Mettre l'article comme disponible et non vendu
+        $sql_update = "UPDATE Articles SET available = 1, is_sold = 0 WHERE id = :article_id";
+        $stmt_update = $pdo->prepare($sql_update);
+        $stmt_update->bindParam(':article_id', $article_id, PDO::PARAM_INT);
+        $stmt_update->execute();
+
+        // Rediriger vers la page d'index pour voir les articles mis à jour
+        header("Location: index.php"); 
         exit;
     } catch (PDOException $e) {
         echo "Erreur lors de la suppression de l'article du panier: " . $e->getMessage();
@@ -73,41 +84,43 @@ if (isset($_POST['remove_from_cart'])) {
         </div>
     </nav>
 
-<body>
-    <h1>Mon Panier</h1>
+    <div class="container">
+        <h1>Mon Panier</h1>
 
-    <!-- Bouton pour revenir à l'index -->
-    <a href="index.php">
-        <button type="button">Retour à l'Index</button>
-    </a>
+        <!-- Bouton pour revenir à l'index -->
+        <a href="index.php">
+            <button type="button" class="btn btn-secondary mb-3">Retour à l'Index</button>
+        </a>
 
-    <?php
-    if (count($cart_items) > 0) {
-        // Afficher les articles dans le panier
-        echo "<h2>Articles dans votre panier :</h2>";
-        foreach ($cart_items as $item) {
-            echo "<div class='cart-item'>";
-            echo "<h3>" . htmlspecialchars($item['name']) . "</h3>";
-            echo "<img src='" . htmlspecialchars($item['image_url']) . "' alt='" . htmlspecialchars($item['name']) . "'>";
-            echo "<p>Prix: " . htmlspecialchars($item['price']) . " €</p>";
-            echo "<form method='POST' action='cart.php'>";
-            echo "<input type='hidden' name='cart_item_id' value='" . htmlspecialchars($item['id']) . "'>";
-            echo "<button type='submit' name='remove_from_cart'>Supprimer</button>";
+        <?php
+        if (count($cart_items) > 0) {
+            echo "<h2>Articles dans votre panier :</h2>";
+            foreach ($cart_items as $item) {
+                echo "<div class='cart-item mb-3 border p-3'>";
+                echo "<h3>" . htmlspecialchars($item['name']) . "</h3>";
+                echo "<img src='" . htmlspecialchars($item['image_url']) . "' alt='" . htmlspecialchars($item['name']) . "' style='max-width: 200px;'>";
+                echo "<p>Prix: " . htmlspecialchars($item['price']) . " €</p>";
+                echo "<form method='POST' action='cart.php'>";
+                echo "<input type='hidden' name='cart_item_id' value='" . htmlspecialchars($item['id']) . "'>";
+                echo "<input type='hidden' name='article_id' value='" . htmlspecialchars($item['article_id']) . "'>";
+                echo "<button type='submit' name='remove_from_cart' class='btn btn-danger'>Supprimer</button>";
+                echo "</form>";
+                echo "</div>";
+            }
+
+            // Afficher le total
+            echo "<h3>Total: " . number_format($total_price, 2, '.', '') . " €</h3>";
+
+            // Formulaire pour passer à l'achat
+            echo "<form method='GET' action='validate.php'>";
+            echo "<button type='submit' name='checkout' class='btn btn-success'>Passer à l'achat</button>";
             echo "</form>";
-            echo "</div>";
+        } else {
+            echo "<p>Votre panier est vide.</p>";
         }
+        ?>
+    </div>
 
-        // Afficher le total
-        echo "<h3>Total: " . number_format($total_price, 2, '.', '') . " €</h3>";
-
-        // Formulaire pour passer à l'achat
-        echo "<form method='GET' action='validate.php'>";
-        echo "<button type='submit' name='checkout'>Passer à l'achat</button>";
-        echo "</form>";
-    } else {
-        echo "<p>Votre panier est vide.</p>";
-    }
-    ?>
 </body>
 </html>
 

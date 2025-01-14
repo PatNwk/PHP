@@ -1,4 +1,5 @@
 <?php
+session_start();
 require 'db_connection.php'; 
 
 $error_message = '';
@@ -9,14 +10,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = $_POST['email'];
     $password = password_hash($_POST['password'], PASSWORD_DEFAULT); // Hash du mot de passe
 
+    // Vérifier si l'email existe déjà
     $stmt = $pdo->prepare("SELECT id FROM Users WHERE email = ?");
     $stmt->execute([$email]);
     if ($stmt->fetch()) {
         $error_message = "Cet email est déjà utilisé.";
     } else { 
+        // Insérer le nouvel utilisateur
         $stmt = $pdo->prepare("INSERT INTO Users (username, email, password) VALUES (?, ?, ?)");
         if ($stmt->execute([$username, $email, $password])) {
-            $success_message = "Inscription réussie ! <a href='login.php'>Connectez-vous ici</a>";
+            // Récupérer l'ID de l'utilisateur nouvellement créé
+            $user_id = $pdo->lastInsertId();
+            
+            // Stocker l'utilisateur dans la session
+            $_SESSION['user_id'] = $user_id;
+            $_SESSION['email'] = $email;
+            $_SESSION['username'] = $username;
+
+            // Redirection vers la page du compte
+            header("Location: index.php");
+            exit();
         } else {
             $error_message = "Erreur lors de l'inscription.";
         }
