@@ -16,6 +16,11 @@ $stmt_user = $pdo->prepare("SELECT * FROM Users WHERE id = ?");
 $stmt_user->execute([$user_id]);
 $user = $stmt_user->fetch(PDO::FETCH_ASSOC);
 
+if (!$user) {
+    echo "Utilisateur introuvable.";
+    exit();
+}
+
 // Récupérer les articles postés par l'utilisateur
 $stmt_articles = $pdo->prepare("SELECT * FROM Articles WHERE author_id = ? AND is_sold = 0 ");
 $stmt_articles->execute([$user_id]);
@@ -90,6 +95,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_info'])) {
                     </div>
                     <button type="submit" class="btn btn-primary" name="update_info">Mettre à jour</button>
                 </form>
+
+                <?php if ($user['role'] === 'admin'): ?>
+                    <!-- Bouton pour accéder à la page admin -->
+                    <a href="admin_account.php" class="btn btn-warning mt-3">Accéder au compte administrateur</a>
+                <?php endif; ?>
             </div>
 
             <div class="col-md-6">
