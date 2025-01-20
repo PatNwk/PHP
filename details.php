@@ -16,7 +16,10 @@ if (isset($_GET['article_id'])) {
     $article_id = $_GET['article_id'];
 
     try {
-        $sql = "SELECT * FROM Articles WHERE id = :article_id";
+        $sql = "SELECT a.*, u.username AS seller_username, u.id AS seller_id, u.email AS seller_email 
+                FROM Articles a 
+                JOIN Users u ON a.author_id = u.id 
+                WHERE a.id = :article_id";
         $stmt = $pdo->prepare($sql);
         $stmt->bindParam(':article_id', $article_id, PDO::PARAM_INT);
         $stmt->execute();
@@ -74,10 +77,15 @@ if (isset($_GET['article_id'])) {
                         <p class="mt-3"><strong>Description :</strong> <?php echo nl2br(htmlspecialchars($article['description'])); ?></p>
                         <h3 class="text-danger"><?php echo htmlspecialchars($article['price']); ?> €</h3>
 
+                        <!-- Informations sur le vendeur -->
+                        <div class="mt-4">
+                            <a href="profile.php?user_id=<?php echo htmlspecialchars($article['seller_id']); ?>" class="btn btn-info btn-sm">Voir le profil du vendeur</a>
+                        </div>
+
                         <!-- Formulaire pour ajouter au panier -->
-                        <form method="POST" action="sell.php">
+                        <form method="POST" action="sell.php" class="mt-4">
                             <input type="hidden" name="article_id" value="<?php echo htmlspecialchars($article['id']); ?>">
-                            <button type="submit" name="add_to_cart" class="btn btn-success btn-lg mt-3">🛒 Ajouter au Panier</button>
+                            <button type="submit" name="add_to_cart" class="btn btn-success btn-lg">🛒 Ajouter au Panier</button>
                         </form>
 
                         <!-- Bouton retour -->
