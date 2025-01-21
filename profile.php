@@ -106,6 +106,7 @@ $is_logged_in = isset($_SESSION['user_id']);
 </html>
 
 <?php
-// Fermer la connexion PDO (bonne pratique)
+// Fermer la connexion PDO (bonne pratique) dqzf;qziofnes,lmfiujseklnm,fkjqls,m;
 $pdo = null;
 ?>
+
