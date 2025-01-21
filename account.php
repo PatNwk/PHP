@@ -161,7 +161,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_balance'])) {
                     <?php endif; ?>
                     <h2><?php echo htmlspecialchars($user['username']); ?></h2>
                     <p class="text-muted"><?php echo htmlspecialchars($user['email']); ?></p>
-                </div>
+                    </div>
             </div>
             <div class="col-md-8">
                 <h1 class="section-title">Modifier mes informations</h1>
@@ -191,14 +191,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_balance'])) {
                                 $pdf_path = 'invoices/' . $purchase['pdf_filename'];
                                 if (file_exists($pdf_path)): ?>
                                     <a href="<?php echo $pdf_path; ?>" class="btn btn-primary btn-sm" target="_blank" download>Télécharger le PDF</a>
-                                <?php else: ?>
+                <?php else: ?>
                                     <span class="text-danger">PDF non trouvé</span>
-                                <?php endif; ?>
+                <?php endif; ?>
                             </li>
                         <?php endforeach; ?>
-                    <?php else: ?>
+                <?php else: ?>
                         <li class="list-group-item">Aucun achat trouvé.</li>
-                    <?php endif; ?>
+                <?php endif; ?>
                 </ul>
             </div>
         </div>
