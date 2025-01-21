@@ -121,6 +121,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_profile_picture
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item"><a class="nav-link" href="cart.php">Panier</a></li>
                     <li class="nav-item"><a class="nav-link" href="logout.php">Déconnexion</a></li>
+                    <!-- Bouton Admin -->
+                    <?php if ($user['role'] === 'admin'): ?>
+                        <li class="nav-item"><a class="nav-link btn btn-warning text-white ms-3" href="admin_account.php">⚙️ Admin</a></li>
+                    <?php endif; ?>
                 </ul>
             </div>
         </div>
