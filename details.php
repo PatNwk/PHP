@@ -12,6 +12,7 @@ try {
     die("Erreur de connexion : " . $e->getMessage());
 }
 
+// Vérifier si un article a été sélectionné
 if (isset($_GET['article_id'])) {
     $article_id = $_GET['article_id'];
 
@@ -35,6 +36,45 @@ if (isset($_GET['article_id'])) {
 } else {
     echo "Aucun article sélectionné.";
     exit;
+}
+
+// Ajouter l'article au panier si le bouton est cliqué
+session_start();
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_to_cart'])) {
+    // Vérifier si l'utilisateur est connecté
+    if (!isset($_SESSION['user_id'])) {
+        header("Location: login.php");
+        exit();
+    }
+
+    $user_id = $_SESSION['user_id'];
+    $article_id = intval($_POST['article_id']);
+
+    try {
+        // Vérifier si l'article est déjà dans le panier
+        $sql = "SELECT * FROM Cart WHERE user_id = :user_id AND article_id = :article_id";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([
+            ':user_id' => $user_id,
+            ':article_id' => $article_id
+        ]);
+
+        if ($stmt->rowCount() === 0) {
+            // Ajouter l'article au panier
+            $sql = "INSERT INTO Cart (user_id, article_id) VALUES (:user_id, :article_id)";
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([
+                ':user_id' => $user_id,
+                ':article_id' => $article_id
+            ]);
+        }
+
+        // Rediriger vers le panier après l'ajout
+        header("Location: cart.php");
+        exit();
+    } catch (PDOException $e) {
+        die("Erreur lors de l'ajout au panier : " . $e->getMessage());
+    }
 }
 
 ?>
@@ -83,11 +123,10 @@ if (isset($_GET['article_id'])) {
                         </div>
 
                         <!-- Formulaire pour ajouter au panier -->
-                        <form method="POST" action="cart.php" class="mt-4">
+                        <form method="POST" class="mt-4">
                             <input type="hidden" name="article_id" value="<?php echo htmlspecialchars($article['id']); ?>">
                             <button type="submit" name="add_to_cart" class="btn btn-success btn-lg">🛒 Ajouter au Panier</button>
                         </form>
-
 
                         <!-- Bouton retour -->
                         <a href="index.php" class="btn btn-outline-primary mt-3">⬅ Retour à l'Index</a>

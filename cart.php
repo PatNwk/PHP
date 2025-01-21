@@ -2,60 +2,46 @@
 session_start();
 require 'db_connection.php'; // Connexion à la base de données
 
-// Vérifier si l'utilisateur est connecté
+// Vérifiez si l'utilisateur est connecté
 if (!isset($_SESSION['user_id'])) {
-    echo "Vous devez être connecté pour voir votre panier.";
-    exit;
+    header("Location: login.php");
+    exit();
 }
 
 $user_id = $_SESSION['user_id'];
 
-// Récupérer les articles du panier
+// Suppression d'un article du panier
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['remove_item'])) {
+    $article_id = intval($_POST['article_id']); // Sécuriser l'entrée utilisateur
+
+    try {
+        // Supprimez l'article du panier (table Cart uniquement)
+        $sql = "DELETE FROM Cart WHERE user_id = :user_id AND article_id = :article_id";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([
+            ':user_id' => $user_id,
+            ':article_id' => $article_id
+        ]);
+
+        header("Location: cart.php"); // Rafraîchir la page pour afficher les changements
+        exit();
+    } catch (PDOException $e) {
+        die("Erreur lors de la suppression de l'article du panier : " . $e->getMessage());
+    }
+}
+
+// Récupérez les articles dans le panier
 try {
-    $sql = "SELECT Cart.id, Articles.name, Articles.price, Articles.image_url, Articles.id AS article_id
+    $sql = "SELECT Articles.id, Articles.name, Articles.price, Articles.image_url 
             FROM Cart 
             JOIN Articles ON Cart.article_id = Articles.id 
             WHERE Cart.user_id = :user_id";
     $stmt = $pdo->prepare($sql);
-    $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
-    $stmt->execute();
+    $stmt->execute([':user_id' => $user_id]);
     $cart_items = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
-    die("Erreur lors de la récupération des articles du panier : " . $e->getMessage());
+    die("Erreur lors de la récupération du panier : " . $e->getMessage());
 }
-
-// Calculer le total du panier
-$total_price = 0;
-foreach ($cart_items as $item) {
-    $total_price += $item['price'];
-}
-
-// Suppression d'un article du panier
-if (isset($_POST['remove_from_cart'])) {
-    $cart_item_id = $_POST['cart_item_id'];
-    $article_id = $_POST['article_id']; // Récupérer l'ID de l'article
-
-    try {
-        // Supprimer du panier
-        $sql = "DELETE FROM Cart WHERE id = :cart_item_id";
-        $stmt = $pdo->prepare($sql);
-        $stmt->bindParam(':cart_item_id', $cart_item_id, PDO::PARAM_INT);
-        $stmt->execute();
-
-        // Mettre l'article comme disponible et non vendu
-        $sql_update = "UPDATE Articles SET available = 1, is_sold = 0 WHERE id = :article_id";
-        $stmt_update = $pdo->prepare($sql_update);
-        $stmt_update->bindParam(':article_id', $article_id, PDO::PARAM_INT);
-        $stmt_update->execute();
-
-        // Rediriger vers la page d'index pour voir les articles mis à jour
-        header("Location: index.php"); 
-        exit;
-    } catch (PDOException $e) {
-        echo "Erreur lors de la suppression de l'article du panier: " . $e->getMessage();
-    }
-}
-
 ?>
 
 <!DOCTYPE html>
@@ -63,12 +49,12 @@ if (isset($_POST['remove_from_cart'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <title>Mon Panier</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 </head>
-
 <body class="bg-light">
 
+    <!-- Barre de navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
             <a class="navbar-brand" href="index.php">Lemauvaiscoin</a>
@@ -78,53 +64,66 @@ if (isset($_POST['remove_from_cart'])) {
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item"><a class="nav-link" href="cart.php">Panier</a></li>
-                    <li class="nav-item"><a class="nav-link" href="logout.php">Déconnexion</a></li>
+                    <?php if (isset($_SESSION['user_id'])): ?>
+                        <li class="nav-item"><a class="nav-link" href="account.php">Mon Compte</a></li>
+                        <li class="nav-item"><a class="nav-link" href="sell.php">Vendre un article</a></li>
+                        <li class="nav-item"><a class="nav-link" href="logout.php">Déconnexion</a></li>
+                    <?php else: ?>
+                        <li class="nav-item"><a class="nav-link" href="login.php">Se connecter</a></li>
+                        <li class="nav-item"><a class="nav-link" href="register.php">S'inscrire</a></li>
+                    <?php endif; ?>
                 </ul>
             </div>
         </div>
     </nav>
 
-    <div class="container">
+    <!-- Contenu principal -->
+    <div class="container mt-5">
         <h1>Mon Panier</h1>
-
-        <!-- Bouton pour revenir à l'index -->
-        <a href="index.php">
-            <button type="button" class="btn btn-secondary mb-3">Retour à l'Index</button>
-        </a>
-
-        <?php
-        if (count($cart_items) > 0) {
-            echo "<h2>Articles dans votre panier :</h2>";
-            foreach ($cart_items as $item) {
-                echo "<div class='cart-item mb-3 border p-3'>";
-                echo "<h3>" . htmlspecialchars($item['name']) . "</h3>";
-                echo "<img src='" . htmlspecialchars($item['image_url']) . "' alt='" . htmlspecialchars($item['name']) . "' style='max-width: 200px;'>";
-                echo "<p>Prix: " . htmlspecialchars($item['price']) . " €</p>";
-                echo "<form method='POST' action='cart.php'>";
-                echo "<input type='hidden' name='cart_item_id' value='" . htmlspecialchars($item['id']) . "'>";
-                echo "<input type='hidden' name='article_id' value='" . htmlspecialchars($item['article_id']) . "'>";
-                echo "<button type='submit' name='remove_from_cart' class='btn btn-danger'>Supprimer</button>";
-                echo "</form>";
-                echo "</div>";
-            }
-
-            // Afficher le total
-            echo "<h3>Total: " . number_format($total_price, 2, '.', '') . " €</h3>";
-
-            // Formulaire pour passer à l'achat
-            echo "<form method='GET' action='validate.php'>";
-            echo "<button type='submit' name='checkout' class='btn btn-success'>Passer à l'achat</button>";
-            echo "</form>";
-        } else {
-            echo "<p>Votre panier est vide.</p>";
-        }
-        ?>
+        <?php if (count($cart_items) > 0): ?>
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Article</th>
+                        <th>Prix</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($cart_items as $item): ?>
+                        <tr>
+                            <td>
+                                <img src="<?php echo htmlspecialchars($item['image_url']); ?>" alt="<?php echo htmlspecialchars($item['name']); ?>" style="width: 50px; height: auto; margin-right: 10px;">
+                                <?php echo htmlspecialchars($item['name']); ?>
+                            </td>
+                            <td><?php echo number_format($item['price'], 2, '.', ''); ?> €</td>
+                            <td>
+                                <form method="POST" style="display:inline;">
+                                    <input type="hidden" name="article_id" value="<?php echo htmlspecialchars($item['id']); ?>">
+                                    <button type="submit" name="remove_item" class="btn btn-danger btn-sm">Supprimer</button>
+                                </form>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+            <p>Total : 
+                <strong>
+                    <?php
+                        $total = array_reduce($cart_items, function($sum, $item) {
+                            return $sum + $item['price'];
+                        }, 0);
+                        echo number_format($total, 2, '.', '') . ' €';
+                    ?>
+                </strong>
+            </p>
+            <a href="validate.php" class="btn btn-success">Passer à l'achat</a>
+        <?php else: ?>
+            <p>Votre panier est vide.</p>
+        <?php endif; ?>
+        <a href="index.php" class="btn btn-primary mt-3">Retour à l'Index</a>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-
-<?php
-// Fermer la connexion PDO (optionnel, mais une bonne pratique)
-$pdo = null;
-?>
