@@ -77,6 +77,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_to_cart'])) {
     }
 }
 
+// Vérifier si l'utilisateur connecté est le propriétaire de l'article ou un administrateur
+$is_owner = isset($_SESSION['user_id']) && $_SESSION['user_id'] == $article['seller_id'];
+$is_admin = isset($_SESSION['role']) && $_SESSION['role'] === 'admin';
+
+// Gestion de la modification de l'article
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_article']) && ($is_owner || $is_admin)) {
+    $name = $_POST['name'];
+    $description = $_POST['description'];
+    $price = $_POST['price'];
+    $image_url = $_POST['image_url'];
+
+    try {
+        $sql = "UPDATE Articles SET name = :name, description = :description, price = :price, image_url = :image_url WHERE id = :article_id";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([
+            ':name' => $name,
+            ':description' => $description,
+            ':price' => $price,
+            ':image_url' => $image_url,
+            ':article_id' => $article_id
+        ]);
+
+        header("Location: details.php?article_id=$article_id");
+        exit();
+    } catch (PDOException $e) {
+        die("Erreur lors de la mise à jour de l'article : " . $e->getMessage());
+    }
+}
+
+// Gestion de la suppression de l'article
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_article']) && ($is_owner || $is_admin)) {
+    try {
+        $sql = "DELETE FROM Articles WHERE id = :article_id";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([':article_id' => $article_id]);
+
+        header("Location: index.php");
+        exit();
+    } catch (PDOException $e) {
+        die("Erreur lors de la suppression de l'article : " . $e->getMessage());
+    }
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -127,6 +170,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_to_cart'])) {
                             <input type="hidden" name="article_id" value="<?php echo htmlspecialchars($article['id']); ?>">
                             <button type="submit" name="add_to_cart" class="btn btn-success btn-lg">🛒 Ajouter au Panier</button>
                         </form>
+
+                        <!-- Section pour les propriétaires ou administrateurs -->
+                        <?php if ($is_owner || $is_admin): ?>
+                            <hr>
+                            <h3>Modifier ou Supprimer l'Article</h3>
+                            <form method="POST">
+                                <div class="mb-3">
+                                    <label for="name" class="form-label">Nom</label>
+                                    <input type="text" class="form-control" id="name" name="name" value="<?php echo htmlspecialchars($article['name']); ?>" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="description" class="form-label">Description</label>
+                                    <textarea class="form-control" id="description" name="description" rows="3" required><?php echo htmlspecialchars($article['description']); ?></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="price" class="form-label">Prix (€)</label>
+                                    <input type="number" class="form-control" id="price" name="price" value="<?php echo htmlspecialchars($article['price']); ?>" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="image_url" class="form-label">URL de l'image</label>
+                                    <input type="text" class="form-control" id="image_url" name="image_url" value="<?php echo htmlspecialchars($article['image_url']); ?>" required>
+                                </div>
+                                <button type="submit" name="update_article" class="btn btn-primary">Mettre à jour</button>
+                                <button type="submit" name="delete_article" class="btn btn-danger">Supprimer</button>
+                            </form>
+                        <?php endif; ?>
 
                         <!-- Bouton retour -->
                         <a href="index.php" class="btn btn-outline-primary mt-3">⬅ Retour à l'Index</a>
