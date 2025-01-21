@@ -1,4 +1,5 @@
 <?php
+session_start(); // Démarrer la session
 require 'db_connection.php'; // Inclure la connexion à la base de données
 
 // Récupérer l'ID de l'utilisateur depuis l'URL
@@ -19,6 +20,9 @@ $sql_articles = "SELECT * FROM Articles WHERE author_id = :user_id";
 $stmt_articles = $pdo->prepare($sql_articles);
 $stmt_articles->execute(['user_id' => $user_id]);
 $articles = $stmt_articles->fetchAll(PDO::FETCH_ASSOC);
+
+// Vérifier si l'utilisateur est connecté
+$is_logged_in = isset($_SESSION['user_id']);
 ?>
 
 <!DOCTYPE html>
@@ -28,42 +32,33 @@ $articles = $stmt_articles->fetchAll(PDO::FETCH_ASSOC);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profil du Vendeur</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <style>
-        /* Style pour les cartes des annonces */
-        .card {
-            height: 400px; /* Hauteur uniforme pour toutes les cartes */
-        }
-        .card-img-top {
-            height: 150px; /* Hauteur fixe des images */
-            object-fit: cover; /* Recadre les images sans déformation */
-        }
-        .card-body {
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-        /* Badges pour indiquer le statut */
-        .badge-vendu {
-            background-color: #28a745;
-            color: white;
-            font-size: 0.9rem;
-            padding: 5px 10px;
-            border-radius: 5px;
-        }
-        .badge-en-cours {
-            background-color: #ffc107;
-            color: black;
-            font-size: 0.9rem;
-            padding: 5px 10px;
-            border-radius: 5px;
-        }
-        /* Ajustement de la carte du profil utilisateur */
-        .profile-card {
-            height: auto; /* Autoriser la hauteur automatique pour le profil */
-        }
-    </style>
+    <link rel="stylesheet" href="profile.css">
+
 </head>
 <body class="bg-light">
+
+<!-- Barre de navigation -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+        <a class="navbar-brand" href="index.php">Lemauvaiscoin</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" href="cart.php">Panier</a></li>
+                <?php if ($is_logged_in): ?>
+                    <li class="nav-item"><a class="nav-link" href="account.php">Mon Compte</a></li>
+                    <li class="nav-item"><a class="nav-link" href="sell.php">Vendre un article</a></li>
+                    <li class="nav-item"><a class="nav-link" href="logout.php">Déconnexion</a></li>
+                <?php else: ?>
+                    <li class="nav-item"><a class="nav-link" href="login.php">Se connecter</a></li>
+                    <li class="nav-item"><a class="nav-link" href="register.php">S'inscrire</a></li>
+                <?php endif; ?>
+            </ul>
+        </div>
+    </div>
+</nav>
 
 <div class="container mt-5">
     <h1 class="text-center">Profil du Vendeur</h1>
@@ -109,8 +104,6 @@ $articles = $stmt_articles->fetchAll(PDO::FETCH_ASSOC);
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-
-
 
 <?php
 // Fermer la connexion PDO (bonne pratique)

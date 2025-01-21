@@ -22,7 +22,7 @@ if (!$user) {
 }
 
 // Récupérer les articles postés par l'utilisateur
-$stmt_articles = $pdo->prepare("SELECT * FROM Articles WHERE author_id = ? AND is_sold = 0 ");
+$stmt_articles = $pdo->prepare("SELECT * FROM Articles WHERE author_id = ? AND is_sold = 0");
 $stmt_articles->execute([$user_id]);
 $articles_posted = $stmt_articles->fetchAll(PDO::FETCH_ASSOC);
 
@@ -30,6 +30,11 @@ $articles_posted = $stmt_articles->fetchAll(PDO::FETCH_ASSOC);
 $stmt_purchased = $pdo->prepare("SELECT a.* FROM Articles a JOIN Cart c ON a.id = c.article_id WHERE c.user_id = ?");
 $stmt_purchased->execute([$user_id]);
 $purchased_articles = $stmt_purchased->fetchAll(PDO::FETCH_ASSOC);
+
+// Récupérer les factures de l'utilisateur
+$stmt_invoices = $pdo->prepare("SELECT * FROM Invoices WHERE user_id = ?");
+$stmt_invoices->execute([$user_id]);
+$invoices = $stmt_invoices->fetchAll(PDO::FETCH_ASSOC);
 
 // Traitement de la modification des informations de l'utilisateur
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_info'])) {
@@ -41,10 +46,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_info'])) {
     $stmt_update = $pdo->prepare("UPDATE Users SET email = ?, password = ? WHERE id = ?");
     if ($stmt_update->execute([$new_email, $new_password_hash, $user_id])) {
         echo "Informations mises à jour avec succès.";
-        // Mettre à jour la session avec le nouvel email
         $_SESSION['email'] = $new_email;
     } else {
         echo "Erreur lors de la mise à jour.";
+    }
+}
+
+// Traitement pour ajouter de l'argent au solde
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_balance'])) {
+    $amount = floatval($_POST['amount']);
+    if ($amount > 0) {
+        $new_balance = $user['balance'] + $amount;
+        $stmt_update_balance = $pdo->prepare("UPDATE Users SET balance = ? WHERE id = ?");
+        if ($stmt_update_balance->execute([$new_balance, $user_id])) {
+            echo "Solde mis à jour avec succès.";
+            $user['balance'] = $new_balance; // Mettre à jour la variable locale
+        } else {
+            echo "Erreur lors de la mise à jour du solde.";
+        }
+    } else {
+        echo "Veuillez entrer un montant valide.";
     }
 }
 ?>
@@ -81,9 +102,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_info'])) {
                 <h2>Informations de l'utilisateur</h2>
                 <p><strong>Email :</strong> <?php echo htmlspecialchars($user['email']); ?></p>
                 <p><strong>Nom d'utilisateur :</strong> <?php echo htmlspecialchars($user['username']); ?></p>
+                <p><strong>Solde actuel :</strong> <?php echo number_format($user['balance'], 2, '.', ''); ?> €</p>
+
+                <!-- Formulaire pour ajouter de l'argent -->
+                <h3>Ajouter au solde</h3>
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="amount" class="form-label">Montant à ajouter (€)</label>
+                        <input type="number" step="0.01" class="form-control" id="amount" name="amount" required>
+                    </div>
+                    <button type="submit" class="btn btn-success" name="add_balance">Ajouter au solde</button>
+                </form>
 
                 <!-- Formulaire de modification des informations -->
-                <h3>Modifier mes informations</h3>
+                <h3 class="mt-4">Modifier mes informations</h3>
                 <form method="POST">
                     <div class="mb-3">
                         <label for="email" class="form-label">Email</label>
@@ -95,11 +127,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_info'])) {
                     </div>
                     <button type="submit" class="btn btn-primary" name="update_info">Mettre à jour</button>
                 </form>
-
-                <?php if ($user['role'] === 'admin'): ?>
-                    <!-- Bouton pour accéder à la page admin -->
-                    <a href="admin_account.php" class="btn btn-warning mt-3">Accéder au compte administrateur</a>
-                <?php endif; ?>
             </div>
 
             <div class="col-md-6">
@@ -110,7 +137,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_info'])) {
                             <li>
                                 <strong><?php echo htmlspecialchars($article['name']); ?></strong> - <?php echo htmlspecialchars($article['price']); ?> €
                                 <p><?php echo htmlspecialchars($article['description']); ?></p>
-                                <a href="details.php?article_id=<?php echo $article['id']; ?>" class="btn btn-info btn-sm">Voir les détails</a>
                             </li>
                         <?php endforeach; ?>
                     </ul>
@@ -118,19 +144,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_info'])) {
                     <p>Vous n'avez pas encore posté d'articles.</p>
                 <?php endif; ?>
 
-                <h2>Mes Articles Achetés</h2>
-                <?php if (count($purchased_articles) > 0): ?>
+                <h2>Mes Factures</h2>
+                <?php if (count($invoices) > 0): ?>
                     <ul>
-                        <?php foreach ($purchased_articles as $article): ?>
+                        <?php foreach ($invoices as $invoice): ?>
                             <li>
-                                <strong><?php echo htmlspecialchars($article['name']); ?></strong> - <?php echo htmlspecialchars($article['price']); ?> €
-                                <p><?php echo htmlspecialchars($article['description']); ?></p>
-                                <a href="details.php?article_id=<?php echo $article['id']; ?>" class="btn btn-info btn-sm">Voir les détails</a>
+                                <strong>Facture #<?php echo $invoice['id']; ?></strong> - <?php echo htmlspecialchars(number_format($invoice['amount'], 2, '.', '')); ?> €
+                                <p>Date : <?php echo htmlspecialchars($invoice['transaction_date']); ?></p>
+                                <a href="invoices/invoice_<?php echo $invoice['id']; ?>.pdf" target="_blank" class="btn btn-info btn-sm">Voir la Facture</a>
                             </li>
                         <?php endforeach; ?>
                     </ul>
                 <?php else: ?>
-                    <p>Vous n'avez pas encore acheté d'articles.</p>
+                    <p>Vous n'avez pas encore de factures.</p>
                 <?php endif; ?>
             </div>
         </div>
@@ -141,6 +167,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_info'])) {
 </html>
 
 <?php
-// Fermer la connexion PDO (optionnel, mais une bonne pratique)
+// Fermer la connexion PDO (optionnel)
 $pdo = null;
 ?>

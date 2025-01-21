@@ -83,10 +83,11 @@ if (isset($_GET['article_id'])) {
                         </div>
 
                         <!-- Formulaire pour ajouter au panier -->
-                        <form method="POST" action="sell.php" class="mt-4">
+                        <form method="POST" action="cart.php" class="mt-4">
                             <input type="hidden" name="article_id" value="<?php echo htmlspecialchars($article['id']); ?>">
                             <button type="submit" name="add_to_cart" class="btn btn-success btn-lg">🛒 Ajouter au Panier</button>
                         </form>
+
 
                         <!-- Bouton retour -->
                         <a href="index.php" class="btn btn-outline-primary mt-3">⬅ Retour à l'Index</a>

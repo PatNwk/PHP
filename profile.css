@@ -1,0 +1,31 @@
+.card {
+    height: 400px; /* Hauteur uniforme pour toutes les cartes */
+}
+.card-img-top {
+    height: 150px; /* Hauteur fixe des images */
+    object-fit: cover; /* Recadre les images sans déformation */
+}
+.card-body {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+/* Badges pour indiquer le statut */
+.badge-vendu {
+    background-color: #28a745;
+    color: white;
+    font-size: 0.9rem;
+    padding: 5px 10px;
+    border-radius: 5px;
+}
+.badge-en-cours {
+    background-color: #ffc107;
+    color: black;
+    font-size: 0.9rem;
+    padding: 5px 10px;
+    border-radius: 5px;
+}
+/* Ajustement de la carte du profil utilisateur */
+.profile-card {
+    height: auto; /* Autoriser la hauteur automatique pour le profil */
+}
