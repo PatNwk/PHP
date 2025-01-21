@@ -32,6 +32,7 @@ $is_logged_in = isset($_SESSION['user_id']);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profil du Vendeur</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+<<<<<<< HEAD
     <link rel="stylesheet" href="profile.css">
 
 </head>
@@ -56,6 +57,37 @@ $is_logged_in = isset($_SESSION['user_id']);
                     <li class="nav-item"><a class="nav-link" href="register.php">S'inscrire</a></li>
                 <?php endif; ?>
             </ul>
+=======
+    <style>
+        .profile-image {
+            width: 150px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 3px solid #ddd;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body class="bg-light">
+
+    <div class="container mt-5">
+        <h1 class="mb-4">Profil du Vendeur</h1>
+        <div class="card mt-3">
+            <div class="card-body text-center">
+                <!-- Affichage de la photo de profil -->
+                <?php if (!empty($user['profile_picture'])): ?>
+                    <img src="<?php echo htmlspecialchars($user['profile_picture']); ?>" alt="Photo de profil" class="profile-image">
+                <?php else: ?>
+                    <img src="default-profile.png" alt="Image par défaut" class="profile-image">
+                <?php endif; ?>
+                
+                <!-- Informations du vendeur -->
+                <h2 class="mt-3"><?php echo htmlspecialchars($user['username']); ?></h2>
+                <p>Email : <?php echo htmlspecialchars($user['email']); ?></p>
+                <!-- Ajoutez ici d'autres informations nécessaires -->
+            </div>
+>>>>>>> cf58a8e (uyf)
         </div>
     </div>
 </nav>
