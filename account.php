@@ -21,22 +21,10 @@ if (!$user) {
     exit();
 }
 
-<<<<<<< HEAD
-// Récupérer les articles postés par l'utilisateur
-$stmt_articles = $pdo->prepare("SELECT * FROM Articles WHERE author_id = ? AND is_sold = 0");
-$stmt_articles->execute([$user_id]);
-$articles_posted = $stmt_articles->fetchAll(PDO::FETCH_ASSOC);
-
-// Récupérer les articles achetés par l'utilisateur
-$stmt_purchased = $pdo->prepare("SELECT a.* FROM Articles a JOIN Cart c ON a.id = c.article_id WHERE c.user_id = ?");
-$stmt_purchased->execute([$user_id]);
-$purchased_articles = $stmt_purchased->fetchAll(PDO::FETCH_ASSOC);
-=======
 // Récupérer les achats de l'utilisateur
 $stmt_purchases = $pdo->prepare("SELECT * FROM Purchases WHERE user_id = ?");
 $stmt_purchases->execute([$user_id]);
 $purchases = $stmt_purchases->fetchAll(PDO::FETCH_ASSOC);
->>>>>>> cf58a8e (uyf)
 
 // Récupérer les factures de l'utilisateur
 $stmt_invoices = $pdo->prepare("SELECT * FROM Invoices WHERE user_id = ?");
@@ -164,27 +152,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_balance'])) {
 
     <div class="container mt-5">
         <div class="row">
-<<<<<<< HEAD
-            <div class="col-md-6">
-                <h2>Informations de l'utilisateur</h2>
-                <p><strong>Email :</strong> <?php echo htmlspecialchars($user['email']); ?></p>
-                <p><strong>Nom d'utilisateur :</strong> <?php echo htmlspecialchars($user['username']); ?></p>
-                <p><strong>Solde actuel :</strong> <?php echo number_format($user['balance'], 2, '.', ''); ?> €</p>
-
-                <!-- Formulaire pour ajouter de l'argent -->
-                <h3>Ajouter au solde</h3>
-                <form method="POST">
-                    <div class="mb-3">
-                        <label for="amount" class="form-label">Montant à ajouter (€)</label>
-                        <input type="number" step="0.01" class="form-control" id="amount" name="amount" required>
-                    </div>
-                    <button type="submit" class="btn btn-success" name="add_balance">Ajouter au solde</button>
-                </form>
-
-                <!-- Formulaire de modification des informations -->
-                <h3 class="mt-4">Modifier mes informations</h3>
-                <form method="POST">
-=======
             <div class="col-md-4">
                 <div class="profile-card text-center">
                     <?php if ($user['profile_picture']): ?>
@@ -194,12 +161,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_balance'])) {
                     <?php endif; ?>
                     <h2><?php echo htmlspecialchars($user['username']); ?></h2>
                     <p class="text-muted"><?php echo htmlspecialchars($user['email']); ?></p>
-                </div>
+                    </div>
             </div>
             <div class="col-md-8">
                 <h1 class="section-title">Modifier mes informations</h1>
                 <form method="POST" enctype="multipart/form-data">
->>>>>>> cf58a8e (uyf)
                     <div class="mb-3">
                         <label for="email" class="form-label">Email</label>
                         <input type="email" class="form-control" id="email" name="email" value="<?php echo htmlspecialchars($user['email']); ?>" required>
@@ -214,39 +180,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_balance'])) {
                     </div>
                     <button type="submit" class="btn btn-custom" name="update_info">Mettre à jour</button>
                 </form>
-<<<<<<< HEAD
-            </div>
-
-            <div class="col-md-6">
-                <h2>Mes Articles Publiés</h2>
-                <?php if (count($articles_posted) > 0): ?>
-                    <ul>
-                        <?php foreach ($articles_posted as $article): ?>
-                            <li>
-                                <strong><?php echo htmlspecialchars($article['name']); ?></strong> - <?php echo htmlspecialchars($article['price']); ?> €
-                                <p><?php echo htmlspecialchars($article['description']); ?></p>
-                            </li>
-                        <?php endforeach; ?>
-                    </ul>
-                <?php else: ?>
-                    <p>Vous n'avez pas encore posté d'articles.</p>
-                <?php endif; ?>
-
-                <h2>Mes Factures</h2>
-                <?php if (count($invoices) > 0): ?>
-                    <ul>
-                        <?php foreach ($invoices as $invoice): ?>
-                            <li>
-                                <strong>Facture #<?php echo $invoice['id']; ?></strong> - <?php echo htmlspecialchars(number_format($invoice['amount'], 2, '.', '')); ?> €
-                                <p>Date : <?php echo htmlspecialchars($invoice['transaction_date']); ?></p>
-                                <a href="invoices/invoice_<?php echo $invoice['id']; ?>.pdf" target="_blank" class="btn btn-info btn-sm">Voir la Facture</a>
-                            </li>
-                        <?php endforeach; ?>
-                    </ul>
-                <?php else: ?>
-                    <p>Vous n'avez pas encore de factures.</p>
-                <?php endif; ?>
-=======
 
                 <h1 class="section-title">Mes Achats</h1>
                 <ul class="list-group">
@@ -258,16 +191,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_balance'])) {
                                 $pdf_path = 'invoices/' . $purchase['pdf_filename'];
                                 if (file_exists($pdf_path)): ?>
                                     <a href="<?php echo $pdf_path; ?>" class="btn btn-primary btn-sm" target="_blank" download>Télécharger le PDF</a>
-                                <?php else: ?>
+                <?php else: ?>
                                     <span class="text-danger">PDF non trouvé</span>
-                                <?php endif; ?>
+                <?php endif; ?>
                             </li>
                         <?php endforeach; ?>
-                    <?php else: ?>
+                <?php else: ?>
                         <li class="list-group-item">Aucun achat trouvé.</li>
-                    <?php endif; ?>
+                <?php endif; ?>
                 </ul>
->>>>>>> cf58a8e (uyf)
             </div>
         </div>
     </div>
@@ -279,11 +211,3 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_balance'])) {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-<<<<<<< HEAD
-
-<?php
-// Fermer la connexion PDO (optionnel)
-$pdo = null;
-?>
-=======
->>>>>>> cf58a8e (uyf)
