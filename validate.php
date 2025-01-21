@@ -1,7 +1,7 @@
 <?php
 session_start();
 require 'db_connection.php'; // Connexion à la base de données
-require('fpdf186/fpdf.php');
+require('fpdf186/fpdf.php'); // Charger la bibliothèque FPDF
 
 // Vérifier si l'utilisateur est connecté
 if (!isset($_SESSION['user_id'])) {
@@ -142,7 +142,9 @@ function generateInvoicePDF($invoice_id) {
     $pdf->Cell(0, 10, $invoice['transaction_date'], 0, 1, 'L');
     
     $pdf->Cell(40, 10, 'Adresse de facturation: ', 0, 0, 'L');
-    $pdf->MultiCell(0, 10, $invoice['billing_address'], 0, 'L');
+    $pdf->SetFont('Arial', '', 10);
+    $pdf->MultiCell(0, 10, wordwrap($invoice['billing_address'], 50), 0, 'L');  // Réduction à 50 caractères pour mieux gérer les adresses longues
+    $pdf->SetFont('Arial', '', 12);
     
     $pdf->Cell(40, 10, 'Ville: ', 0, 0, 'L');
     $pdf->Cell(0, 10, $invoice['billing_city'], 0, 1, 'L');
@@ -151,41 +153,44 @@ function generateInvoicePDF($invoice_id) {
     $pdf->Cell(0, 10, $invoice['billing_zip'], 0, 1, 'L');
     
     $pdf->Cell(40, 10, 'Total: ', 0, 0, 'L');
-    $pdf->Cell(0, 10, number_format($invoice['amount'], 2, '.', '') . ' €', 0, 1, 'L');
+    $pdf->Cell(0, 10, number_format($invoice['amount'], 2, '.', '') . ' e', 0, 1, 'L');
     $pdf->Ln(10);
 
     // Liste des articles avec tableau
     $pdf->SetFont('Arial', 'B', 12);
     $pdf->Cell(90, 10, 'Article', 1, 0, 'C');
     $pdf->Cell(40, 10, 'Prix unitaire', 1, 0, 'C');
-    $pdf->Cell(30, 10, 'Quantité', 1, 0, 'C');
-    $pdf->Cell(30, 10, 'Total', 1, 1, 'C');
+    $pdf->Cell(30, 10, 'Nombre', 1, 0, 'C');
+    $pdf->Cell(30, 10, 'Prix total', 1, 1, 'C');
     
     $pdf->SetFont('Arial', '', 12);
 
     $total_amount = 0;
 
     foreach ($cart_items as $item) {
+        $article_name = $item['name'];
+        $article_price = $item['price'];
+        $quantity = 1; // Quantité par défaut
+        $item_total = $article_price * $quantity;
+
         // Affichage de chaque article dans le tableau
-        $pdf->Cell(90, 10, $item['name'], 1, 0, 'L');
-        $pdf->Cell(40, 10, number_format($item['price'], 2, '.', '') . ' €', 1, 0, 'C');
-        $pdf->Cell(30, 10, '1', 1, 0, 'C');  // Quantité fixe ici (vous pouvez ajuster selon votre logique)
-        $pdf->Cell(30, 10, number_format($item['price'], 2, '.', '') . ' €', 1, 1, 'C');
+        $pdf->Cell(90, 10, $article_name, 1, 0, 'L');
+        $pdf->Cell(40, 10, number_format($article_price, 2, '.', '') . ' e', 1, 0, 'C');
+        $pdf->Cell(30, 10, $quantity, 1, 0, 'C');
+        $pdf->Cell(30, 10, number_format($item_total, 2, '.', '') . ' e', 1, 1, 'C');
         
-        // Additionner le montant total
-        $total_amount += $item['price'];
+        $total_amount += $item_total;
     }
 
     // Afficher le total général avec un fond pour faire ressortir le montant
     $pdf->SetFont('Arial', 'B', 12);
     $pdf->Cell(160, 10, 'Total de la commande:', 1, 0, 'R');
-    $pdf->Cell(30, 10, number_format($total_amount, 2, '.', '') . ' €', 1, 1, 'C');
+    $pdf->Cell(0, 10, number_format($invoice['amount'], 2, '.', '') . ' e', 1, 1, 'L');
     $pdf->Ln(10);
 
     // Sortie du PDF
     $pdf->Output('F', 'invoices/invoice_' . $invoice_id . '.pdf');
 }
-
 ?>
 
 <!DOCTYPE html>
@@ -202,47 +207,38 @@ function generateInvoicePDF($invoice_id) {
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
             <a class="navbar-brand" href="index.php">Lemauvaiscoin</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link" href="cart.php">Panier</a></li>
-                    <li class="nav-item"><a class="nav-link" href="logout.php">Déconnexion</a></li>
-                </ul>
-            </div>
         </div>
     </nav>
 
-<body>
-    <h1>Valider la Commande</h1>
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">Valider votre commande</h1>
+        <form method="POST">
+            <div class="mb-3">
+                <label for="billing_address" class="form-label">Adresse de facturation</label>
+                <input type="text" class="form-control" id="billing_address" name="billing_address" required>
+            </div>
+            <div class="mb-3">
+                <label for="billing_city" class="form-label">Ville</label>
+                <input type="text" class="form-control" id="billing_city" name="billing_city" required>
+            </div>
+            <div class="mb-3">
+                <label for="billing_zip" class="form-label">Code postal</label>
+                <input type="text" class="form-control" id="billing_zip" name="billing_zip" required>
+            </div>
+            <div class="mb-3">
+                <label for="payment_method" class="form-label">Méthode de paiement</label>
+                <select class="form-control" id="payment_method" name="payment_method" required>
+                    <option value="credit_card">Carte de crédit</option>
+                    <option value="paypal">PayPal</option>
+                </select>
+            </div>
+            <button type="submit" name="confirm_checkout" class="btn btn-success w-100">Confirmer la commande</button>
+        </form>
+    </div>
 
-    <p>Total: <?php echo number_format($total_price, 2, '.', '') ?> €</p>
-
-    <form method="POST" action="validate.php">
-        <label for="billing_address">Adresse de Livraison:</label>
-        <input type="text" name="billing_address" required><br>
-
-        <label for="billing_city">Ville de Livraison:</label>
-        <input type="text" name="billing_city" required><br>
-
-        <label for="billing_zip">Code Postal de Livraison:</label>
-        <input type="text" name="billing_zip" required><br>
-
-        <label for="payment_method">Méthode de Paiement:</label>
-        <select name="payment_method">
-            <option value="credit_card">Carte de Crédit</option>
-            <option value="paypal">PayPal</option>
-        </select><br>
-
-        <button type="submit" name="confirm_checkout">Confirmer l'Achat</button>
-    </form>
-
-    <a href="cart.php"><button>Retour au Panier</button></a>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-
-<?php
-// Fermer la connexion PDO (optionnel, mais une bonne pratique)
-$pdo = null;
-?>
