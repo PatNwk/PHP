@@ -68,6 +68,37 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_balance'])) {
         echo "Veuillez entrer un montant valide.";
     }
 }
+
+// Traitement de la mise à jour de la photo de profil
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update_profile_picture'])) {
+    if (isset($_FILES['profile_picture']) && $_FILES['profile_picture']['error'] === UPLOAD_ERR_OK) {
+        $file_tmp_path = $_FILES['profile_picture']['tmp_name'];
+        $file_name = $_FILES['profile_picture']['name'];
+        $file_ext = pathinfo($file_name, PATHINFO_EXTENSION);
+        $allowed_exts = ['jpg', 'jpeg', 'png', 'gif'];
+
+        if (in_array(strtolower($file_ext), $allowed_exts)) {
+            $new_file_name = "profile_" . $user_id . "." . $file_ext;
+            $upload_path = "uploads/profile_pictures/" . $new_file_name;
+
+            if (move_uploaded_file($file_tmp_path, $upload_path)) {
+                $stmt_update_picture = $pdo->prepare("UPDATE Users SET profile_picture = ? WHERE id = ?");
+                if ($stmt_update_picture->execute([$upload_path, $user_id])) {
+                    echo "Photo de profil mise à jour avec succès.";
+                    $user['profile_picture'] = $upload_path;
+                } else {
+                    echo "Erreur lors de la mise à jour de la photo de profil.";
+                }
+            } else {
+                echo "Erreur lors de l'enregistrement du fichier.";
+            }
+        } else {
+            echo "Format de fichier non valide. Seuls les formats JPG, JPEG, PNG, et GIF sont autorisés.";
+        }
+    } else {
+        echo "Veuillez sélectionner une image à télécharger.";
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -103,9 +134,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_balance'])) {
                 <p><strong>Email :</strong> <?php echo htmlspecialchars($user['email']); ?></p>
                 <p><strong>Nom d'utilisateur :</strong> <?php echo htmlspecialchars($user['username']); ?></p>
                 <p><strong>Solde actuel :</strong> <?php echo number_format($user['balance'], 2, '.', ''); ?> €</p>
+                <p><strong>Photo de profil :</strong></p>
+                <img src="<?php echo $user['profile_picture'] ? htmlspecialchars($user['profile_picture']) : 'uploads/profile_pictures/default.png'; ?>" 
+                     alt="Photo de profil" class="img-thumbnail" style="width: 150px; height: 150px;">
+
+                <!-- Formulaire pour ajouter/modifier une photo de profil -->
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="profile_picture" class="form-label">Changer de photo de profil</label>
+                        <input type="file" class="form-control" id="profile_picture" name="profile_picture" accept="image/*">
+                    </div>
+                    <button type="submit" class="btn btn-primary" name="update_profile_picture">Mettre à jour</button>
+                </form>
 
                 <!-- Formulaire pour ajouter de l'argent -->
-                <h3>Ajouter au solde</h3>
+                <h3 class="mt-4">Ajouter au solde</h3>
                 <form method="POST">
                     <div class="mb-3">
                         <label for="amount" class="form-label">Montant à ajouter (€)</label>

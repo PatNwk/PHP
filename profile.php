@@ -6,7 +6,7 @@ require 'db_connection.php'; // Inclure la connexion à la base de données
 $user_id = isset($_GET['user_id']) ? intval($_GET['user_id']) : 0;
 
 // Récupérer les informations du vendeur
-$sql_user = "SELECT username, email FROM Users WHERE id = :user_id";
+$sql_user = "SELECT username, email, profile_picture FROM Users WHERE id = :user_id";
 $stmt_user = $pdo->prepare($sql_user);
 $stmt_user->execute(['user_id' => $user_id]);
 $user = $stmt_user->fetch(PDO::FETCH_ASSOC);
@@ -33,7 +33,6 @@ $is_logged_in = isset($_SESSION['user_id']);
     <title>Profil du Vendeur</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="profile.css">
-
 </head>
 <body class="bg-light">
 
@@ -65,7 +64,11 @@ $is_logged_in = isset($_SESSION['user_id']);
 
     <!-- Informations du vendeur -->
     <div class="card mt-4 profile-card">
-        <div class="card-body">
+        <div class="card-body text-center">
+            <!-- Photo de profil -->
+            <img src="<?php echo htmlspecialchars($user['profile_picture'] ? $user['profile_picture'] : 'uploads/profile_pictures/default.png'); ?>" 
+                 alt="Photo de profil" class="rounded-circle img-thumbnail mb-3" style="width: 150px; height: 150px;">
+            
             <h3 class="card-title">Nom d'utilisateur : <?php echo htmlspecialchars($user['username']); ?></h3>
             <p>Email : <?php echo htmlspecialchars($user['email']); ?></p>
         </div>
@@ -85,9 +88,9 @@ $is_logged_in = isset($_SESSION['user_id']);
                             <p class="card-text"><strong>Prix :</strong> <?php echo htmlspecialchars($article['price']); ?> €</p>
                             <!-- Badge pour indiquer le statut -->
                             <?php if ($article['is_sold']): ?>
-                                <span class="badge badge-vendu">Vendu</span>
+                                <span class="badge bg-danger">Vendu</span>
                             <?php else: ?>
-                                <span class="badge badge-en-cours">En cours</span>
+                                <span class="badge bg-success">En cours</span>
                             <?php endif; ?>
                         </div>
                     </div>
